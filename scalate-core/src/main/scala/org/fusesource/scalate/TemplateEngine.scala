@@ -392,7 +392,10 @@ class TemplateEngine(var sourceDirectories: Traversable[File] = None, var mode: 
     templateCache.synchronized {
 
       templateCache.get(source.uri) match {
-        case None => sourceMapLog.info(s"${source.uri} not exist in cache")
+        case None => {
+          sourceMapLog.info(s"${source.uri} not exist in cache just compiling")
+          cache(source, compileAndLoadEntry(source, extraBindings))
+        }
         case Some(entry) => {
 
           sourceMapLog.info(s"${source.uri} found in cache to expire")
