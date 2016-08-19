@@ -386,6 +386,26 @@ class TemplateEngine(var sourceDirectories: Traversable[File] = None, var mode: 
    */
   def cacheMisses = templateCache.synchronized { _cacheMisses }
 
+
+  def expireAndCompile(source: TemplateSource, extraBindings:Traversable[Binding]= Nil): Unit = {
+
+    templateCache.synchronized {
+
+      templateCache.get(source.uri) match {
+        case None => sourceMapLog.info(s"${source.uri} not exist in cache")
+        case Some(entry) => {
+
+          sourceMapLog.info(s"${source.uri} found in cache to expire")
+          templateCache.remove(source.uri)
+
+          cache(source, compileAndLoadEntry(source, extraBindings))
+
+          sourceMapLog.info(s"${source.uri} removed from cache and compiled")
+        }
+      }
+    }
+  }
+
   /**
    * Compiles and then caches the specified template.  If the template
    * was previously cached, the previously compiled template instance
